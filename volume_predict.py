@@ -5,7 +5,7 @@ import imageio
 import matplotlib.pyplot as plt
 
 def ratio(image, mask, top, bottom):
-    return (image * mask - bottom).sum() / (top - bottom).sum()
+    return (bottom - image * mask).sum() / (bottom - top).sum()
 
 def getRatio(image_name, mask, top, bottom):
 	image = imageio.imread(image_name)
