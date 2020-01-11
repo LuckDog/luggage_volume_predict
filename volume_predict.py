@@ -4,6 +4,21 @@ import cv2
 import imageio
 import matplotlib.pyplot as plt
 
+def judgeIfClose(image, mask, top):
+	image_mask = (image * mask) > 0
+	mean_value = (image * mask * image_mask - top * image_mask).sum() / image_mask.sum()
+	if mean_value < 0.005:
+		return True
+	else:
+		return False
+
+def judgeIfHasOcclusion(image, mask):
+	image_mask = image * mask > 0
+	sub_number = mask.sum() - image_mask.sum()
+	if float(sub_number) / mask.sum() > 0.3:
+		return True
+	return False
+
 def getMeanValue(image, rect_not_change):
 	sub_image = image[rect_not_change[1]:rect_not_change[3], rect_not_change[0]: rect_not_change[2]]
 	mean_value = sub_image.mean()
@@ -23,6 +38,10 @@ def ratio(image, mask, top, bottom):
 def getRatio(image_name, mask, top, bottom):
 	image = imageio.imread(image_name)
 	volume_ratio = ratio(getNormalImage(image), mask, top, bottom)
+	if judgeIfHasOcclusion(getNormalImage(image), mask):
+		return -1.00
+	if judgeIfClose(getNormalImage(image), mask, top):
+		return -2.00
 	if volume_ratio < 0:
 		volume_ratio = 0.00
 	if volume_ratio > 1:
