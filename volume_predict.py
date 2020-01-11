@@ -4,6 +4,14 @@ import cv2
 import imageio
 import matplotlib.pyplot as plt
 
+def judgeIfClose(image, mask, top):
+	image_mask = (image * mask) > 0
+	mean_value = (image * mask * image_mask - top * image_mask).sum() / image_mask.sum()
+	if mean_value < 0.005:
+		return True
+	else:
+		return False
+
 def getMeanValue(image, rect_not_change):
 	sub_image = image[rect_not_change[1]:rect_not_change[3], rect_not_change[0]: rect_not_change[2]]
 	mean_value = sub_image.mean()
@@ -17,6 +25,8 @@ def getRatio(image_name, mask, top, bottom, rect_not_change):
 	mean_value = getMeanValue(image, rect_not_change)
 	if mean_value == 0:
 		return -1.00
+	if judgeIfClose(image / float(mean_value), mask, top):
+		return -2.00
 	#print(type(sub_image), sub_image.shape, mean_value)
 	volume_ratio = ratio(image/float(mean_value), mask, top, bottom)
 	volume_ratio = 1 - volume_ratio
