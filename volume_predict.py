@@ -106,6 +106,21 @@ def getNormalImage(image):
 
 def getStatus(volume_ratio):
 	if volume_ratio == -3.0:
+		return ["camera motion", (0, 0, 0)]
+	elif volume_ratio == -2.0:
+		return ["luggage rack close", (0, 0, 0)]
+	elif volume_ratio == -1.0:
+		return ["object occlusion", (0, 0, 0)]
+	elif volume_ratio < 0.5:
+		return ["enough space", (0, 255, 0)]
+	elif volume_ratio < 0.9:
+		return ["half space", (255, 255, 0)]
+	elif volume_ratio < 1.0:
+		return ["full space", (255, 0, 0)]
+	else:
+		return ["Unknown", (255, 255, 255)]
+	'''
+	if volume_ratio == -3.0:
 		return ["镜头晃动", (0, 0, 0)]
 	elif volume_ratio == -2.0:
 		return ["行李架关闭", (0, 0, 0)]
@@ -119,7 +134,9 @@ def getStatus(volume_ratio):
 		return ["货架已满", (255, 0, 0)]
 	else:
 		return ["未知状态", (255, 255, 255)]
+	'''
 
+'''
 def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     if (isinstance(img, numpy.ndarray)):  # 判断是否OpenCV图片类型
         img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -132,7 +149,7 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     draw.text((left, top), text, textColor, font=fontStyle)
     # 转换回OpenCV格式
     return cv2.cvtColor(numpy.asarray(img), cv2.COLOR_RGB2BGR)
-
+'''
 # e.g: python .\volume_predict.py .\20191230_convert\ .\config_data\ out_img
 if __name__ == '__main__':
 	if(len(sys.argv) < 4):
@@ -155,7 +172,7 @@ if __name__ == '__main__':
 	top_70 = imageio.imread(os.path.join(depth_path, 'Depth_224.bmp'))
 
 	ref_0 = imageio.imread(os.path.join(depth_path, 'Depth_0.bmp'))
-	ref_70 = imageio.imread(os.path.join(depth_path, 'Depth_70.bmp'))
+	ref_70 = imageio.imread(os.path.join(depth_path, 'Depth_239.bmp'))
 
 	rect_not_change_0 = (600, 180, 635, 200)
 	# rect_not_change_70 = (600, 300, 610, 310)
@@ -186,9 +203,9 @@ if __name__ == '__main__':
 			volume_ratio = -3.0
 		img = cv2.imread(color_name)
 		font = cv2.FONT_HERSHEY_SIMPLEX
-		#imgzi = cv2.putText(img, getStatus(volume_ratio), (30, 30), font, 1.2, (0, 0, 255), 2)
 		text_status = getStatus(volume_ratio)
-		imgzi = cv2ImgAddText(img, text_status[0], 30, 30, text_status[1])
+		imgzi = cv2.putText(img, text_status[0], (30, 30), font, 1.2, text_status[1], 2)
+		#imgzi = cv2ImgAddText(img, text_status[0], 30, 30, text_status[1])
 		#print(getStatus(volume_ratio))
 		# cv2.imshow("Volume Ratio", imgzi)
 		cv2.imwrite(output_img_name, imgzi)
