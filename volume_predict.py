@@ -110,16 +110,20 @@ def getStatus(volume_ratio):
 	elif volume_ratio == -2.0:
 		return ["luggage rack close", (0, 0, 0)]
 	elif volume_ratio == -1.0:
-		return ["object occlusion", (0, 0, 0)]
-	elif volume_ratio < 0.5:
+		return ["object occlusion", (0, 0, 6)]
+	else:
+		return ["space", (0, 255, 0)]
+		
+	'''
+	elif volume_ratio < 0.6:
 		return ["enough space", (0, 255, 0)]
-	elif volume_ratio < 0.9:
+	elif volume_ratio >= 0.6 and volume_ratio < 0.9:
 		return ["half space", (255, 255, 0)]
 	elif volume_ratio < 1.0:
 		return ["full space", (255, 0, 0)]
 	else:
 		return ["Unknown", (255, 255, 255)]
-	'''
+	
 	if volume_ratio == -3.0:
 		return ["镜头晃动", (0, 0, 0)]
 	elif volume_ratio == -2.0:
@@ -204,7 +208,7 @@ if __name__ == '__main__':
 		img = cv2.imread(color_name)
 		font = cv2.FONT_HERSHEY_SIMPLEX
 		text_status = getStatus(volume_ratio)
-		imgzi = cv2.putText(img, text_status[0], (30, 30), font, 1.2, text_status[1], 2)
+		imgzi = cv2.putText(img, text_status[0] + " " + str(volume_ratio), (30, 30), font, 1.2, text_status[1], 2)
 		#imgzi = cv2ImgAddText(img, text_status[0], 30, 30, text_status[1])
 		#print(getStatus(volume_ratio))
 		# cv2.imshow("Volume Ratio", imgzi)
