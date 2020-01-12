@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 def judgeIfClose(image, mask, top):
 	image_mask = (image * mask) > 0
 	mean_value = (image * mask * image_mask - top * image_mask).sum() / image_mask.sum()
-	if mean_value < 0.005:
+	if mean_value < 0.01:
 		return True
 	else:
 		return False
@@ -24,6 +24,13 @@ def getMeanValue(image, rect_not_change):
 	mean_value = sub_image.mean()
 	return mean_value
 
+def limit(image, value_1, value_2):
+	mask_1 = image > value_1
+	mask_2 = image < value_2
+	#print((image < value_1).sum(), (image > value_2).sum())
+	image = image * mask_1 * mask_2
+	return image
+
 def ratio(image, mask, top, bottom):
 	image_mask = image*mask > 0
 	top_mask = top > 0
@@ -33,7 +40,20 @@ def ratio(image, mask, top, bottom):
 	bottom = bottom * intersection
 	top = top * intersection
 	image = image * intersection
-	return (bottom - image).sum() / (bottom - top).sum()
+
+	volume_area = bottom - top
+	value_1 = 0
+	value_2 = volume_area.max()
+	volume_self = limit(bottom - image, value_1, value_2)
+	volume_area = limit(volume_area, value_1, value_2)
+	#print(volume_self.sum() / volume_area.sum())
+	return volume_self.sum() / volume_area.sum()
+	#print((bottom - image).max(), (bottom - image).min())
+	#print((bottom - top).max(), (bottom - top).min())
+
+	#print(((bottom - image) < 0).sum(), ((bottom - top) < 0).sum(), ((bottom - image) > 0).sum(), ((bottom - top) > 0).sum())
+
+	#return (bottom - image).sum() / (bottom - top).sum()
 
 def getRatio(image_name, mask, top, bottom, ref, rect_not_change):
 	image = imageio.imread(image_name)
@@ -42,11 +62,11 @@ def getRatio(image_name, mask, top, bottom, ref, rect_not_change):
 	sub_image = image[rect_not_change[1]:rect_not_change[3], rect_not_change[0]: rect_not_change[2]]
 	sub_ref = ref[rect_not_change[1]:rect_not_change[3], rect_not_change[0]: rect_not_change[2]]
 	bias = sub_image.mean()-sub_ref.mean()
-	image = image-bias
+	#image = image-bias
 	volume_ratio = ratio(image, mask, top, bottom)
-	if judgeIfHasOcclusion(getNormalImage(image), mask):
+	if judgeIfHasOcclusion(image, mask):
 		return -1.00
-	if judgeIfClose(getNormalImage(image), mask, top):
+	if judgeIfClose(image, mask, top):
 		return -2.00
 	if volume_ratio < 0:
 		volume_ratio = 0.00
