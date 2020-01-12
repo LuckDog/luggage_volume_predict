@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-  
 import os
 import sys
 import cv2
 import imageio
 import matplotlib.pyplot as plt
+import numpy
+from PIL import Image, ImageDraw, ImageFont
 
 def judgeIfClose(image, mask, top):
 	image_mask = (image * mask) > 0
@@ -101,6 +104,34 @@ def getNormalImage(image):
 	image_normal = (image - min_value) * image_mask / float(max_value - min_value)
 	return image_normal
 
+def getStatus(volume_ratio):
+	if volume_ratio == -3.0:
+		return ["镜头晃动", (0, 0, 0)]
+	elif volume_ratio == -2.0:
+		return ["行李架关闭", (0, 0, 0)]
+	elif volume_ratio == -1.0:
+		return ["有物体遮挡", (0, 0, 0)]
+	elif volume_ratio < 0.5:
+		return ["空间充足", (0, 255, 0)]
+	elif volume_ratio < 0.9:
+		return ["已过半", (255, 255, 0)]
+	elif volume_ratio < 1.0:
+		return ["货架已满", (255, 0, 0)]
+	else:
+		return ["未知状态", (255, 255, 255)]
+
+def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
+    if (isinstance(img, numpy.ndarray)):  # 判断是否OpenCV图片类型
+        img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    # 创建一个可以在给定图像上绘图的对象
+    draw = ImageDraw.Draw(img)
+    # 字体的格式
+    fontStyle = ImageFont.truetype(
+        "font/simsun.ttc", textSize, encoding="utf-8")
+    # 绘制文本
+    draw.text((left, top), text, textColor, font=fontStyle)
+    # 转换回OpenCV格式
+    return cv2.cvtColor(numpy.asarray(img), cv2.COLOR_RGB2BGR)
 
 # e.g: python .\volume_predict.py .\20191230_convert\ .\config_data\ out_img
 if __name__ == '__main__':
@@ -152,10 +183,13 @@ if __name__ == '__main__':
 		elif(int(basename) > 70):
 			volume_ratio =  getRatio(image_name, mask_70, top_70, bottom_70, ref_70, rect_not_change_70)
 		else:
-			volume_ratio = -1
+			volume_ratio = -3.0
 		img = cv2.imread(color_name)
 		font = cv2.FONT_HERSHEY_SIMPLEX
-		imgzi = cv2.putText(img, str(volume_ratio), (30, 30), font, 1.2, (0, 0, 255), 2)
+		#imgzi = cv2.putText(img, getStatus(volume_ratio), (30, 30), font, 1.2, (0, 0, 255), 2)
+		text_status = getStatus(volume_ratio)
+		imgzi = cv2ImgAddText(img, text_status[0], 30, 30, text_status[1])
+		#print(getStatus(volume_ratio))
 		# cv2.imshow("Volume Ratio", imgzi)
 		cv2.imwrite(output_img_name, imgzi)
 		# cv2.waitKey(1)
