@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 def judgeIfClose(image, mask, top):
 	image_mask = (image * mask) > 0
 	mean_value = (image * mask * image_mask - top * image_mask).sum() / image_mask.sum()
-	if mean_value < 0.01:
+	if mean_value < 0.015:
 		return True
 	else:
 		return False
@@ -113,7 +113,7 @@ def getStatus(volume_ratio):
 		return ["object occlusion", (0, 0, 6)]
 	else:
 		return ["space", (0, 255, 0)]
-		
+
 	'''
 	elif volume_ratio < 0.6:
 		return ["enough space", (0, 255, 0)]
